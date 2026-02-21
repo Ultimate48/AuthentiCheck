@@ -1,22 +1,31 @@
-import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import LoginPage from "./pages/LoginPage";
-import MemberDashboard from "./pages/MemberDashboard";
-import CustomerPage from "./pages/CustomerPage";
-import AdminPanel from "./pages/AdminPanel";
+import AdminPage from "./pages/AdminPage";
+import QRScannerPage from "./pages/QRScannerPage";
+import ProductTrackingPage from "./pages/ProductTrackingPage";
+import DashboardLayout from "./layouts/DashboardLayout";
 
 function App() {
   return (
-    <BrowserRouter>
+    <Router>
+
       <Routes>
-        <Route path="/" element={<MemberDashboard />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={<MemberDashboard />} />
-        <Route path="/customer" element={<CustomerPage />} />
-        <Route path="/admin" element={<AdminPanel />} />
+
+        {/* PUBLIC ROUTES */}
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/track" element={<ProductTrackingPage />} />
+
+
+        {/* DASHBOARD ROUTES */}
+        <Route element={<DashboardLayout />}>
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/scanner" element={<QRScannerPage />} />
+        </Route>
+
       </Routes>
-    </BrowserRouter>
+
+    </Router>
   );
 }
 
