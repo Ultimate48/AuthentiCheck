@@ -1,8 +1,16 @@
 const express = require('express');
 const app = express();
-app.use(express.json());
-
 const port = process.env.PORT || 3000
+const { SupplyMember, Batch, BatchLink } = require('./models');
+
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*')
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    next()
+  })
+
+app.use(express.json());
 
 const {
     createSupplyMember,
@@ -71,6 +79,16 @@ app.post('/verify', async (req, res) => {
 
         const chain = await verifyBatch(batchId);
         res.status(200).json({ chain });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/supply-members', async (req, res) => {
+    //get supply-members using Sequelize
+    try {
+        const members = await SupplyMember.findAll();
+        res.status(200).json({ members });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

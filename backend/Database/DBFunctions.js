@@ -209,3 +209,5 @@ verifyBatch("4595a76b-e8ff-4c2b-9838-3d5ccf62906a").then(chain => {
 }).catch(err => {
     console.error('Error verifying batch:', err.message);
 });
+
+module.exports = { createSupplyMember, addBatch, verifyBatch, signData }
