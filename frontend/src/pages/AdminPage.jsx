@@ -2,6 +2,26 @@ import { useState } from "react";
 
 export default function AdminPage() {
 
+  // =============================
+  // MEMBER MANAGEMENT (demo data)
+  // =============================
+  const [members, setMembers] = useState([
+    { id: "SUP001", name: "GreenWay Logistics", status: "Pending" },
+    { id: "RET101", name: "EcoStore Retail", status: "Approved" },
+    { id: "MAN555", name: "CleanFab Textiles", status: "Pending" }
+  ]);
+
+  const updateStatus = (id, newStatus) => {
+    setMembers(members.map(m =>
+      m.id === id ? { ...m, status: newStatus } : m
+    ));
+  };
+
+
+
+  // =============================
+  // BATCH FORM
+  // =============================
   const [form, setForm] = useState({
     batchId: "",
     memberId: "",
@@ -11,44 +31,36 @@ export default function AdminPage() {
 
   const [qrImage, setQrImage] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-
-
+  const [msg, setMsg] = useState("");
 
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
 
 
+  // =============================
+  // SUBMIT TO BACKEND
+  // =============================
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setLoading(true);
-    setMessage("");
+    setMsg("");
     setQrImage(null);
 
     try {
       const res = await fetch("API_PLACEHOLDER_URL", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)
       });
 
       const data = await res.json();
-
-      // API should return QR image URL
       setQrImage(data.qrImage);
-      setMessage("Batch submitted successfully ✔");
+      setMsg("Batch processed successfully ✅");
 
     } catch (err) {
-      setMessage("Something went wrong ❌");
-      console.error(err);
+      setMsg("Failed to process batch ❌");
     }
 
     setLoading(false);
@@ -59,130 +71,140 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
 
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto space-y-8">
 
-        {/* HEADER */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">
-            Supply Chain Batch Management
-          </h1>
-          <p className="text-gray-500">
-            Create shipment batch and receive QR from server
-          </p>
+        {/* ================= HEADER ================= */}
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Admin Control Panel</h1>
+          <div className="text-gray-500">Supply Chain Governance</div>
         </div>
 
 
-        {/* FORM CARD */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+        {/* ================= MEMBER MANAGEMENT ================= */}
+        <div className="bg-white p-6 rounded-2xl shadow">
+          <h2 className="text-xl font-semibold mb-4">
+            Supply Chain Members
+          </h2>
 
-            {/* BATCH ID */}
-            <div>
-              <label className="block font-medium mb-2">
-                Batch ID
-              </label>
-              <input
-                type="text"
-                name="batchId"
-                value={form.batchId}
-                onChange={handleChange}
-                placeholder="Enter batch ID"
-                className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
+          <table className="w-full text-left">
+            <thead className="border-b">
+              <tr>
+                <th className="py-2">Member ID</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
 
+            <tbody>
+              {members.map(member => (
+                <tr key={member.id} className="border-b">
+                  <td className="py-3 font-medium">{member.id}</td>
+                  <td>{member.name}</td>
+                  <td>
+                    <span className={`
+                      px-3 py-1 rounded-full text-sm
+                      ${member.status === "Approved" ? "bg-green-100 text-green-700" : ""}
+                      ${member.status === "Pending" ? "bg-yellow-100 text-yellow-700" : ""}
+                      ${member.status === "Suspended" ? "bg-red-100 text-red-700" : ""}
+                    `}>
+                      {member.status}
+                    </span>
+                  </td>
 
-            {/* MEMBER ID */}
-            <div>
-              <label className="block font-medium mb-2">
-                Member ID
-              </label>
-              <input
-                type="text"
-                name="memberId"
-                value={form.memberId}
-                onChange={handleChange}
-                placeholder="Supplier / Retailer ID"
-                className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
+                  <td className="space-x-2">
+                    <button
+                      onClick={() => updateStatus(member.id, "Approved")}
+                      className="bg-green-500 text-white px-3 py-1 rounded"
+                    >
+                      Approve
+                    </button>
 
+                    <button
+                      onClick={() => updateStatus(member.id, "Suspended")}
+                      className="bg-yellow-500 text-white px-3 py-1 rounded"
+                    >
+                      Suspend
+                    </button>
 
-            {/* SHIP TO ID */}
-            <div>
-              <label className="block font-medium mb-2">
-                Ship To ID
-              </label>
-              <input
-                type="text"
-                name="shipToId"
-                value={form.shipToId}
-                onChange={handleChange}
-                placeholder="Receiver ID"
-                className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-
-
-            {/* STATUS */}
-            <div>
-              <label className="block font-medium mb-2">
-                Shipment Status
-              </label>
-              <select
-                name="status"
-                value={form.status}
-                onChange={handleChange}
-                className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="">Select status</option>
-                <option value="Created">Created</option>
-                <option value="Dispatched">Dispatched</option>
-                <option value="In Transit">In Transit</option>
-                <option value="Delivered">Delivered</option>
-                <option value="Accepted">Accepted</option>
-                <option value="Rejected">Rejected</option>
-              </select>
-            </div>
+                    <button
+                      onClick={() =>
+                        setMembers(members.filter(m => m.id !== member.id))
+                      }
+                      className="bg-red-500 text-white px-3 py-1 rounded"
+                    >
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
 
-            {/* SUBMIT BUTTON */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+
+        {/* ================= BATCH CREATION ================= */}
+        <div className="bg-white p-6 rounded-2xl shadow">
+
+          <h2 className="text-xl font-semibold mb-4">
+            Create Shipment Batch
+          </h2>
+
+          <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-6">
+
+            <input
+              name="batchId"
+              placeholder="Batch ID"
+              className="border p-3 rounded-lg"
+              onChange={handleChange}
+              required
+            />
+
+            <input
+              name="memberId"
+              placeholder="Member ID"
+              className="border p-3 rounded-lg"
+              onChange={handleChange}
+              required
+            />
+
+            <input
+              name="shipToId"
+              placeholder="Ship To ID"
+              className="border p-3 rounded-lg"
+              onChange={handleChange}
+              required
+            />
+
+            <select
+              name="status"
+              className="border p-3 rounded-lg"
+              onChange={handleChange}
+              required
             >
-              {loading ? "Submitting..." : "Submit Batch"}
-            </button>
+              <option value="">Select Status</option>
+              <option>Created</option>
+              <option>Dispatched</option>
+              <option>In Transit</option>
+              <option>Delivered</option>
+            </select>
 
+            <button
+              className="col-span-2 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700"
+              disabled={loading}
+            >
+              {loading ? "Processing..." : "Submit Batch"}
+            </button>
           </form>
 
+          {msg && <p className="mt-4 font-medium">{msg}</p>}
 
-          {/* MESSAGE */}
-          {message && (
-            <p className="mt-4 text-center font-medium text-green-600">
-              {message}
-            </p>
-          )}
-
-
-          {/* QR RESULT */}
           {qrImage && (
-            <div className="mt-8 text-center">
-              <h3 className="font-semibold mb-4 text-lg">
-                QR Received from API
-              </h3>
-
-              <img
-                src={qrImage}
-                alt="QR Code"
-                className="mx-auto w-48 h-48 border rounded-lg shadow"
-              />
+            <div className="mt-6 text-center">
+              <h3 className="font-semibold mb-2">QR From Server</h3>
+              <img src={qrImage} className="w-40 mx-auto" />
             </div>
           )}
 
