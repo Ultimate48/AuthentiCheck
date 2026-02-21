@@ -94,6 +94,10 @@ app.get('/supply-members', async (req, res) => {
     }
 });
 
+app.get('/ping', (req, res) => {
+    res.send('pong');
+});
+
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
