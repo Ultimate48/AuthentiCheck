@@ -9,22 +9,19 @@ import DashboardLayout from "./layouts/DashboardLayout";
 function App() {
   return (
     <Router>
-
       <Routes>
 
         {/* PUBLIC ROUTES */}
         <Route path="/" element={<LoginPage />} />
         <Route path="/track" element={<ProductTrackingPage />} />
 
-
-        {/* DASHBOARD ROUTES */}
+        {/* DASHBOARD ROUTES (WITH SIDEBAR + HEADER) */}
         <Route element={<DashboardLayout />}>
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/scanner" element={<QRScannerPage />} />
         </Route>
 
       </Routes>
-
     </Router>
   );
 }
