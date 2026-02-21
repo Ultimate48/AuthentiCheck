@@ -30,7 +30,7 @@ app.post('/supply-member', async (req, res) => {
         const { supplyMember, privateKey } = await createSupplyMember(email, password, entity_name);
         res.status(201).json({
             supplyMember: supplyMember.toJSON(),
-            privateKey // return once, user must save this themselves
+            privateKey
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -85,7 +85,6 @@ app.post('/verify', async (req, res) => {
 });
 
 app.get('/supply-members', async (req, res) => {
-    //get supply-members using Sequelize
     try {
         const members = await SupplyMember.findAll();
         res.status(200).json({ members });

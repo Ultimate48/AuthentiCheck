@@ -51,12 +51,6 @@ function generateKeyPair(){
 
 }
 
-createSupplyMember("admin@gamil.com", "adminPassword4707", "Admin")
-.then(({ supplyMember, privateKey }) => {
-    console.log('Supply Member created:', supplyMember.toJSON());
-    console.log('Private Key:', privateKey);
-})
-
 function signData(data, strippedPrivateKey) {
     const privateKeyPem = `-----BEGIN PRIVATE KEY-----\n${strippedPrivateKey}\n-----END PRIVATE KEY-----`;
     
@@ -126,34 +120,6 @@ async function addBatch(batchData, producerId, shippedTo, signature, raw_materia
 async function generateQR(data) {
     const qr = await QRCode.toDataURL(JSON.stringify(data));
     return qr;
-}
-
-function createBatch(){
-    const batchData = {
-        product_name: 'Shirt',
-        quantity: "100 kg",
-        harvest_date: '2024-06-01'
-    }
-
-    producerId = "6c52d025-3684-4f43-956d-fe5985eb43db";
-
-    shippedTo = null;
-
-    const raw_material_batchIds = ["38c1a573-f08e-43ca-894f-594ba03401d0"];
-
-    const signature = signData({
-        batchData,
-        producerId,
-        shippedTo,
-        raw_material_batchIds
-    }, 
-    "MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAzEsns7bSwNu7lM42FZuTqjqVAu2JKys1PbM6+LyBpffWaWDe8MvTrNzkb9OUUh4869HlfORndaQT6YkOLb65ewIDAQABAkAOd5ADMQIxuB3LhuLbmt3VIzrkLzAUh4XIrcWSUb8Yopj+law/ksSQkWBD6Y3bzIjm3lYjB0GKh0Gx9gHY4M5RAiEA6GIKG/cXhAmAf3Gu0GGqE0BgOrK28SRqvf4W41le7wMCIQDhDk63p2do4hTqaP/gKXfR4xZ8i4x46/XcqjUdfLAmKQIgRS3agJTAhWgmvsnjFtncPbruassFNyh2NnVL7waOAm0CIQCd1pX4kcyhr2Wx3QAPq6WgKx7bLFfRetOM9kaYLpmvuQIhAKAnhPDxR84twtXuh7s92N0UuSedoNPuP3UXAPCwvJq6"
-    );
-
-    addBatch(batchData, producerId, shippedTo, signature, raw_material_batchIds)
-    .then(batch => {
-        console.log('Batch created:', batch);
-    })
 }
 
 async function verifyBatch(batchId) {
