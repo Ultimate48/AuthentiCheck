@@ -33,7 +33,6 @@ export default function Admin() {
     setLoadingMembers(true)
     try {
       const { data } = await getSupplyMembers()
-      // Handle both array and wrapped response
       setMembers(Array.isArray(data) ? data : data.members || data.data || [])
     } catch (e) {
       console.error('Failed to fetch members', e)
