@@ -4,7 +4,9 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.97.0",
+    "express": "^5.2.1",
     "pg": "^8.18.0",
+    "qrcode": "^1.5.4",
     "sequelize": "^6.37.7"
   }
 }

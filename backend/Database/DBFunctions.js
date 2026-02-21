@@ -1,6 +1,7 @@
-const { SupplyMember, Batch, Batchlink } = require('./models');
+const { SupplyMember, Batch, BatchLink } = require('./models');
 const supabase = require('./supabaseClient');
 const { createSign, createVerify } = require('crypto');
+const QRCode = require('qrcode');
 
 async function createSupplyMember(email, password, entity_name){
     const { data, error } = await supabase.auth.admin.createUser({
@@ -50,7 +51,7 @@ function generateKeyPair(){
 
 }
 
-// createSupplyMember("arshbir.f4@gamil.com", "password123", "Adeesh's Farm")
+// createSupplyMember("textile@gamil.com", "password123", "Textile Maker")
 // .then(({ supplyMember, privateKey }) => {
 //     console.log('Supply Member created:', supplyMember.toJSON());
 //     console.log('Private Key:', privateKey);
@@ -112,40 +113,99 @@ async function addBatch(batchData, producerId, shippedTo, signature, raw_materia
     });
 
     for(const batchId of raw_material_batchIds){
-        await Batchlink.create({
+        await BatchLink.create({
             parent_id: batchId,
             child_id: batch.id
         });
     }
+    qr = await generateQR(batch.id);
 
-    return batch;
+    return { batch, qr };
+}
+
+async function generateQR(data) {
+    const qr = await QRCode.toDataURL(JSON.stringify(data));
+    return qr;
 }
 
 function createBatch(){
     const batchData = {
-        product_name: 'Tomatoes',
+        product_name: 'Shirt',
         quantity: "100 kg",
         harvest_date: '2024-06-01'
     }
 
-    producerId = "f0f58506-b7a0-44a8-9380-771631dc8524";
+    producerId = "6c52d025-3684-4f43-956d-fe5985eb43db";
 
     shippedTo = null;
 
-    const raw_material_batchIds = [];
+    const raw_material_batchIds = ["38c1a573-f08e-43ca-894f-594ba03401d0"];
 
     const signature = signData({
         batchData,
         producerId,
         shippedTo,
         raw_material_batchIds
-    }, "MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAvygOBpHBNXWRTfZ1eQAjgPXrPbvHVO2MzuXI0uCzJIwCwnmn3PaBSMOfqtdCkkuYV69IUjchKdTQCc0MOZTe5wIDAQABAkEAmi44gdv2NqRJOtTbE2mlOVMhFn3q3PltZUO5oz1RwNs3ehscADVPAbA7GPT6keoB7Pu8YxzqGzrhyrgE7FXaQQIhAO0FX5M5Aqhy4gIHTnXyaPtc4z/6IZZKmrkeNgeHsFYJAiEAznaEdgbDK05+nxYAscfJ4ENlGlieyWJtnSjzj0yfSW8CIGr9ZPIg5ulAynJd9/XX0bm9aTtE3opn7MWpNHxbrKZ5AiEAmRvpJYHkUIRYgG+Xuj94JTi1jHE16BB3S3ooDRf8dD8CIAP6pJrc/HOeWdNvEFUy42NLODFO3OSTbbbTeQ6p5qoi"
+    }, 
+    "MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAzEsns7bSwNu7lM42FZuTqjqVAu2JKys1PbM6+LyBpffWaWDe8MvTrNzkb9OUUh4869HlfORndaQT6YkOLb65ewIDAQABAkAOd5ADMQIxuB3LhuLbmt3VIzrkLzAUh4XIrcWSUb8Yopj+law/ksSQkWBD6Y3bzIjm3lYjB0GKh0Gx9gHY4M5RAiEA6GIKG/cXhAmAf3Gu0GGqE0BgOrK28SRqvf4W41le7wMCIQDhDk63p2do4hTqaP/gKXfR4xZ8i4x46/XcqjUdfLAmKQIgRS3agJTAhWgmvsnjFtncPbruassFNyh2NnVL7waOAm0CIQCd1pX4kcyhr2Wx3QAPq6WgKx7bLFfRetOM9kaYLpmvuQIhAKAnhPDxR84twtXuh7s92N0UuSedoNPuP3UXAPCwvJq6"
     );
 
     addBatch(batchData, producerId, shippedTo, signature, raw_material_batchIds)
     .then(batch => {
-        console.log('Batch created:', batch.toJSON());
+        console.log('Batch created:', batch);
     })
 }
 
 // createBatch();
+
+async function verifyBatch(batchId) {
+    const visited = new Set();
+
+    async function traverse(id) {
+        if (visited.has(id)) return null;
+        visited.add(id);
+
+        const batch = await Batch.findByPk(id, {
+            include: [
+                { model: SupplyMember, as: 'Producer' },
+                { model: SupplyMember, as: 'ShippedTo' },
+            ]
+        });
+
+        if (!batch) throw new Error(`Batch ${id} not found`);
+
+        const parentLinks = await BatchLink.findAll({ where: { child_id: id } });
+        const raw_material_batchIds = parentLinks.map(link => link.parent_id);
+
+        const dataToVerify = {
+            batchData: batch.data,
+            producerId: batch.producer_id,
+            shippedTo: batch.shipped_to_id,
+            raw_material_batchIds
+        };
+
+        const isValid = verifyData(dataToVerify, batch.signature, batch.Producer.public_key);
+
+        const parents = await Promise.all(
+            raw_material_batchIds.map(parentId => traverse(parentId))
+        );
+
+        return {
+            id: batch.id,
+            producer: batch.Producer.entity_name,
+            shipped_to: batch.ShippedTo ? batch.ShippedTo.entity_name : null,
+            data: batch.data,
+            signature_valid: isValid,
+            raw_materials: parents.filter(Boolean) // remove nulls
+        };
+    }
+
+    const chain = await traverse(batchId);
+    return chain;
+}
+
+verifyBatch("4595a76b-e8ff-4c2b-9838-3d5ccf62906a").then(chain => {
+    console.log(JSON.stringify(chain, null, 2));
+}).catch(err => {
+    console.error('Error verifying batch:', err.message);
+});
