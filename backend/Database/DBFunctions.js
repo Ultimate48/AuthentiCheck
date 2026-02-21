@@ -51,11 +51,11 @@ function generateKeyPair(){
 
 }
 
-// createSupplyMember("textile@gamil.com", "password123", "Textile Maker")
-// .then(({ supplyMember, privateKey }) => {
-//     console.log('Supply Member created:', supplyMember.toJSON());
-//     console.log('Private Key:', privateKey);
-// })
+createSupplyMember("admin@gamil.com", "adminPassword4707", "Admin")
+.then(({ supplyMember, privateKey }) => {
+    console.log('Supply Member created:', supplyMember.toJSON());
+    console.log('Private Key:', privateKey);
+})
 
 function signData(data, strippedPrivateKey) {
     const privateKeyPem = `-----BEGIN PRIVATE KEY-----\n${strippedPrivateKey}\n-----END PRIVATE KEY-----`;
@@ -156,8 +156,6 @@ function createBatch(){
     })
 }
 
-// createBatch();
-
 async function verifyBatch(batchId) {
     const visited = new Set();
 
@@ -203,11 +201,5 @@ async function verifyBatch(batchId) {
     const chain = await traverse(batchId);
     return chain;
 }
-
-verifyBatch("4595a76b-e8ff-4c2b-9838-3d5ccf62906a").then(chain => {
-    console.log(JSON.stringify(chain, null, 2));
-}).catch(err => {
-    console.error('Error verifying batch:', err.message);
-});
 
 module.exports = { createSupplyMember, addBatch, verifyBatch, signData }

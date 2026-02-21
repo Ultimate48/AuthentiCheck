@@ -1,28 +1,21 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
-import LoginPage from "./pages/LoginPage";
-import AdminPage from "./pages/AdminPage";
-import QRScannerPage from "./pages/QRScannerPage";
-import ProductTrackingPage from "./pages/ProductTrackingPage";
-import DashboardLayout from "./layouts/DashboardLayout";
+import Login from './pages/Login'
+import Dashboard from './pages/Dashboard'
+import Verify from './pages/Verify'
+import Admin from './pages/Admin'
 
 function App() {
   return (
     <Router>
 
       <Routes>
-
-        {/* PUBLIC ROUTES */}
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/track" element={<ProductTrackingPage />} />
-
-
-        {/* DASHBOARD ROUTES */}
-        <Route element={<DashboardLayout />}>
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/scanner" element={<QRScannerPage />} />
-        </Route>
-
+        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/verify" element={<Verify />} />
+        <Route path="/verify/:batchId" element={<Verify />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
 
     </Router>
