@@ -13,7 +13,7 @@ export default function Dashboard() {
   const [quantity, setQuantity] = useState('')
   const [shippedTo, setShippedTo] = useState('')
   const [privateKey, setPrivateKey] = useState('')
-  const [rawMaterials, setRawMaterials] = useState([]) // array of batch IDs
+  const [rawMaterials, setRawMaterials] = useState([])
   const [manualBatchId, setManualBatchId] = useState('')
 
   // UI state
@@ -21,16 +21,13 @@ export default function Dashboard() {
   const [signature, setSignature] = useState('')
   const [signed, setSigned] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState(null) // { batch, qr }
+  const [result, setResult] = useState(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
-        navigate('/login')
-      } else {
-        setUser(data.user)
-      }
+      if (!data.user) navigate('/login')
+      else setUser(data.user)
     })
   }, [])
 
@@ -57,12 +54,7 @@ export default function Dashboard() {
     if (!privateKey) return setError('Paste your private key to sign.')
     if (!productName || !quantity) return setError('Fill in product name and quantity.')
     setError('')
-
     try {
-      // Call sign endpoint or sign client-side
-      // Here we POST to a /sign endpoint — or you can import the crypto logic
-      // For now we construct the payload and sign server-side via /batch endpoint
-      // We'll do it as part of submit. Mark signed = true just as a UX step.
       setSigned(true)
     } catch (e) {
       setError('Signing failed: ' + e.message)
@@ -75,6 +67,8 @@ export default function Dashboard() {
     setLoading(true)
     setError('')
     setResult(null)
+
+    console.log(user.id)
 
     try {
       const batchData = {
@@ -92,7 +86,6 @@ export default function Dashboard() {
       })
 
       setResult(data)
-      // Reset form
       setProductName('')
       setQuantity('')
       setShippedTo('')
@@ -107,26 +100,25 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen grid-bg">
-      {/* Header */}
-      <header className="border-b border-chain-border bg-chain-surface/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-gradient-to-br from-black via-emerald-950 to-black text-emerald-100">
+
+      {/* HEADER */}
+      <header className="border-b border-emerald-500/20 bg-black/40 backdrop-blur-xl sticky top-0 z-10">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-5 h-5 border-2 border-chain-accent rotate-45" />
-            <span className="font-display font-bold text-chain-accent tracking-widest text-sm uppercase">
+            <div className="w-4 h-4 bg-emerald-400 rotate-45 shadow-[0_0_12px_#34d399]" />
+            <span className="font-bold tracking-widest uppercase text-emerald-300">
               AuthentiCheck
             </span>
           </div>
-          <div className="flex items-center gap-6">
-            <span className="text-chain-subtext font-mono text-xs truncate max-w-48">
+
+          <div className="flex items-center gap-6 text-sm">
+            <span className="text-emerald-400/80 font-mono truncate max-w-40">
               {user?.email}
-            </span>
-            <span className="text-chain-muted font-mono text-xs hidden sm:block">
-              ID: {user?.id?.slice(0, 8)}...
             </span>
             <button
               onClick={handleLogout}
-              className="text-xs uppercase tracking-widest font-mono text-chain-muted hover:text-chain-warn transition-colors"
+              className="uppercase tracking-widest text-emerald-500 hover:text-emerald-300 transition"
             >
               Logout
             </button>
@@ -134,151 +126,112 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto px-6 py-10">
-        <div className="mb-8 animate-fade-up">
-          <h1 className="font-display text-3xl font-800 text-chain-text mb-1">
-            Add New Batch
-          </h1>
-          <p className="text-chain-subtext font-body text-sm">
-            Create a signed batch and generate its supply chain QR code
-          </p>
-        </div>
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        <h1 className="text-4xl font-bold text-emerald-300 mb-2 drop-shadow-[0_0_12px_rgba(16,185,129,0.6)]">
+          Add New Batch
+        </h1>
+        <p className="text-emerald-400/70 mb-10">
+          Create a signed batch and generate its supply chain QR code
+        </p>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="lg:col-span-3 space-y-6 animate-fade-up">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
 
-            {/* Product Info */}
-            <div className="bg-chain-surface border border-chain-border rounded-2xl p-6 space-y-4">
-              <h2 className="font-display font-700 text-chain-text text-sm uppercase tracking-widest mb-4">
+          {/* FORM */}
+          <form onSubmit={handleSubmit} className="lg:col-span-3 space-y-8">
+
+            {/* PRODUCT INFO */}
+            <div className="bg-black/40 border border-emerald-500/20 rounded-2xl p-6 backdrop-blur-xl shadow-[0_0_40px_rgba(16,185,129,0.15)] space-y-5">
+              <h2 className="uppercase tracking-widest text-emerald-400 text-sm">
                 Product Info
               </h2>
 
-              <div>
-                <label className="block text-xs uppercase tracking-widest text-chain-subtext mb-2 font-mono">
-                  Product Name
-                </label>
-                <input
-                  value={productName}
-                  onChange={(e) => { setProductName(e.target.value); setSigned(false) }}
-                  required
-                  placeholder="e.g. Cotton Fabric"
-                  className="w-full bg-chain-bg border border-chain-border rounded-lg px-4 py-3 text-chain-text text-sm font-body focus:outline-none focus:border-chain-accent transition-colors placeholder:text-chain-muted"
-                />
-              </div>
+              <input
+                value={productName}
+                onChange={(e) => { setProductName(e.target.value); setSigned(false) }}
+                required
+                placeholder="Product Name"
+                className="w-full bg-black/60 border border-emerald-500/30 rounded-lg px-4 py-3 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 transition"
+              />
 
-              <div>
-                <label className="block text-xs uppercase tracking-widest text-chain-subtext mb-2 font-mono">
-                  Quantity
-                </label>
-                <input
-                  value={quantity}
-                  onChange={(e) => { setQuantity(e.target.value); setSigned(false) }}
-                  required
-                  placeholder="e.g. 500 kg"
-                  className="w-full bg-chain-bg border border-chain-border rounded-lg px-4 py-3 text-chain-text text-sm font-body focus:outline-none focus:border-chain-accent transition-colors placeholder:text-chain-muted"
-                />
-              </div>
+              <input
+                value={quantity}
+                onChange={(e) => { setQuantity(e.target.value); setSigned(false) }}
+                required
+                placeholder="Quantity"
+                className="w-full bg-black/60 border border-emerald-500/30 rounded-lg px-4 py-3 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 transition"
+              />
 
-              <div>
-                <label className="block text-xs uppercase tracking-widest text-chain-subtext mb-2 font-mono">
-                  Ship To (Supply Member ID) <span className="text-chain-muted normal-case">— optional</span>
-                </label>
-                <input
-                  value={shippedTo}
-                  onChange={(e) => { setShippedTo(e.target.value); setSigned(false) }}
-                  placeholder="UUID of recipient supply member"
-                  className="w-full bg-chain-bg border border-chain-border rounded-lg px-4 py-3 text-chain-text text-sm font-body focus:outline-none focus:border-chain-accent transition-colors placeholder:text-chain-muted"
-                />
-              </div>
+              <input
+                value={shippedTo}
+                onChange={(e) => { setShippedTo(e.target.value); setSigned(false) }}
+                placeholder="Ship To (optional)"
+                className="w-full bg-black/60 border border-emerald-500/30 rounded-lg px-4 py-3 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 transition"
+              />
             </div>
 
-            {/* Raw Materials */}
-            <div className="bg-chain-surface border border-chain-border rounded-2xl p-6">
-              <h2 className="font-display font-700 text-chain-text text-sm uppercase tracking-widest mb-4">
-                Raw Material Batches
+            {/* RAW MATERIALS */}
+            <div className="bg-black/40 border border-emerald-500/20 rounded-2xl p-6 backdrop-blur-xl space-y-4">
+              <h2 className="uppercase tracking-widest text-emerald-400 text-sm">
+                Raw Materials
               </h2>
 
-              <div className="flex gap-2 mb-3">
+              <div className="flex gap-3">
                 <input
                   value={manualBatchId}
                   onChange={(e) => setManualBatchId(e.target.value)}
-                  placeholder="Enter Batch ID manually"
-                  className="flex-1 bg-chain-bg border border-chain-border rounded-lg px-4 py-2.5 text-chain-text text-sm font-mono focus:outline-none focus:border-chain-accent transition-colors placeholder:text-chain-muted"
+                  placeholder="Enter Batch ID"
+                  className="flex-1 bg-black/60 border border-emerald-500/30 rounded-lg px-4 py-2 focus:border-emerald-400 transition"
                 />
                 <button
                   type="button"
                   onClick={() => addRawMaterial(manualBatchId)}
-                  className="px-4 py-2.5 bg-chain-border rounded-lg text-chain-text text-sm font-mono hover:bg-chain-muted/30 transition-colors"
+                  className="px-4 py-2 bg-emerald-600/20 border border-emerald-500 rounded-lg hover:bg-emerald-600/40 transition"
                 >
                   Add
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowScanner(true)}
-                  className="px-4 py-2.5 border border-chain-accent/50 rounded-lg text-chain-accent text-sm font-mono hover:bg-chain-accent/10 transition-colors"
-                >
-                  Scan QR
-                </button>
               </div>
 
-              {rawMaterials.length === 0 ? (
-                <p className="text-chain-muted text-xs font-mono py-3 text-center border border-dashed border-chain-border rounded-lg">
-                  No raw materials — this is an origin batch
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {rawMaterials.map((id) => (
-                    <div
-                      key={id}
-                      className="flex items-center justify-between bg-chain-bg rounded-lg px-3 py-2 border border-chain-border"
-                    >
-                      <span className="font-mono text-xs text-chain-subtext truncate max-w-xs">
-                        {id}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => removeRawMaterial(id)}
-                        className="text-chain-muted hover:text-chain-warn text-sm ml-2 shrink-0"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
+              {rawMaterials.map((id) => (
+                <div
+                  key={id}
+                  className="flex justify-between items-center bg-black/60 border border-emerald-500/20 rounded-lg px-3 py-2"
+                >
+                  <span className="font-mono text-xs text-emerald-300 truncate">
+                    {id}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeRawMaterial(id)}
+                    className="text-emerald-500 hover:text-red-400 transition"
+                  >
+                    ✕
+                  </button>
                 </div>
-              )}
+              ))}
             </div>
 
-            {/* Private Key & Sign */}
-            <div className="bg-chain-surface border border-chain-border rounded-2xl p-6 space-y-4">
-              <h2 className="font-display font-700 text-chain-text text-sm uppercase tracking-widest">
+            {/* SIGN */}
+            <div className="bg-black/40 border border-emerald-500/20 rounded-2xl p-6 backdrop-blur-xl space-y-4">
+              <h2 className="uppercase tracking-widest text-emerald-400 text-sm">
                 Sign Batch
               </h2>
 
-              <div>
-                <label className="block text-xs uppercase tracking-widest text-chain-subtext mb-2 font-mono">
-                  Your Private Key
-                </label>
-                <textarea
-                  value={privateKey}
-                  onChange={(e) => { setPrivateKey(e.target.value); setSigned(false) }}
-                  placeholder="Paste your base64 private key here..."
-                  rows={3}
-                  className="w-full bg-chain-bg border border-chain-border rounded-lg px-4 py-3 text-chain-text text-xs font-mono focus:outline-none focus:border-chain-accent transition-colors placeholder:text-chain-muted resize-none"
-                />
-                <p className="text-chain-muted text-xs mt-1 font-body">
-                  Never stored. Used only to generate the batch signature.
-                </p>
-              </div>
+              <textarea
+                value={privateKey}
+                onChange={(e) => { setPrivateKey(e.target.value); setSigned(false) }}
+                placeholder="Paste Private Key"
+                rows={3}
+                className="w-full bg-black/60 border border-emerald-500/30 rounded-lg px-4 py-3 font-mono text-xs focus:border-emerald-400 transition"
+              />
 
               <button
                 type="button"
                 onClick={handleSign}
                 disabled={signed}
-                className={`w-full py-3 rounded-lg text-sm font-mono uppercase tracking-widest transition-all ${
+                className={`w-full py-3 rounded-lg uppercase tracking-widest transition-all ${
                   signed
-                    ? 'bg-chain-accent/20 border border-chain-accent text-chain-accent cursor-default'
-                    : 'border border-chain-accent text-chain-accent hover:bg-chain-accent/10'
+                    ? 'bg-emerald-500/20 border border-emerald-400 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.5)]'
+                    : 'border border-emerald-400 text-emerald-400 hover:bg-emerald-500/10'
                 }`}
               >
                 {signed ? '✓ Batch Signed' : 'Sign Batch'}
@@ -286,7 +239,7 @@ export default function Dashboard() {
             </div>
 
             {error && (
-              <div className="bg-red-950/40 border border-red-800/50 rounded-lg px-4 py-3 text-red-400 text-sm font-body">
+              <div className="bg-red-900/40 border border-red-700 rounded-lg px-4 py-3 text-red-400 text-sm">
                 {error}
               </div>
             )}
@@ -294,78 +247,41 @@ export default function Dashboard() {
             <button
               type="submit"
               disabled={loading || !signed}
-              className="w-full bg-chain-accent text-chain-bg font-display font-700 text-sm tracking-widest uppercase py-4 rounded-xl hover:bg-chain-accentDim transition-colors disabled:opacity-40 disabled:cursor-not-allowed animate-pulse-glow"
+              className="w-full bg-gradient-to-r from-emerald-500 to-green-400 text-black font-bold py-4 rounded-xl shadow-[0_0_30px_rgba(16,185,129,0.6)] hover:scale-[1.02] transition disabled:opacity-40"
             >
               {loading ? 'Creating Batch...' : 'Create & Register Batch'}
             </button>
           </form>
 
-          {/* Result Panel */}
+          {/* RESULT PANEL */}
           <div className="lg:col-span-2">
             {result ? (
-              <div className="bg-chain-surface border border-chain-accent/30 rounded-2xl p-6 animate-fade-up sticky top-24">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-2 h-2 rounded-full bg-chain-accent animate-pulse" />
-                  <h3 className="font-display font-700 text-chain-accent text-sm uppercase tracking-widest">
-                    Batch Created
-                  </h3>
-                </div>
+              <div className="bg-black/40 border border-emerald-400/30 rounded-2xl p-6 backdrop-blur-xl sticky top-24 shadow-[0_0_40px_rgba(16,185,129,0.2)]">
+                <h3 className="text-emerald-400 uppercase tracking-widest text-sm mb-4">
+                  Batch Created
+                </h3>
 
-                {/* QR Code */}
-                <div className="bg-white p-3 rounded-xl mb-4 flex items-center justify-center">
+                <div className="bg-white p-3 rounded-xl mb-4 flex justify-center">
                   <img src={result.qr} alt="Batch QR" className="w-full max-w-48" />
                 </div>
 
-                <div className="space-y-2">
-                  <div className="bg-chain-bg rounded-lg p-3">
-                    <p className="text-xs uppercase tracking-widest text-chain-subtext font-mono mb-1">
-                      Batch ID
-                    </p>
-                    <p className="font-mono text-xs text-chain-text break-all">
-                      {result.batch?.id}
-                    </p>
-                  </div>
-                  <div className="bg-chain-bg rounded-lg p-3">
-                    <p className="text-xs uppercase tracking-widest text-chain-subtext font-mono mb-1">
-                      Product
-                    </p>
-                    <p className="font-mono text-xs text-chain-text">
-                      {result.batch?.data?.product_name}
-                    </p>
-                  </div>
-                </div>
-
-                <a
-                  href={result.qr}
-                  download="batch-qr.png"
-                  className="mt-4 block text-center w-full border border-chain-accent/50 text-chain-accent py-2.5 rounded-lg text-xs font-mono uppercase tracking-widest hover:bg-chain-accent/10 transition-colors"
-                >
-                  Download QR
-                </a>
+                <p className="text-xs text-emerald-300 font-mono break-all">
+                  {result.batch?.id}
+                </p>
               </div>
             ) : (
-              <div className="border border-dashed border-chain-border rounded-2xl p-8 text-center text-chain-muted sticky top-24">
-                <div className="w-16 h-16 border border-dashed border-chain-border rounded-xl mx-auto mb-4 flex items-center justify-center">
-                  <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                    <rect x="3" y="3" width="7" height="7" />
-                    <rect x="14" y="3" width="7" height="7" />
-                    <rect x="3" y="14" width="7" height="7" />
-                    <path d="M14 14h.01M14 17h.01M17 14h.01M17 17h.01" strokeLinecap="round" />
-                  </svg>
-                </div>
-                <p className="font-mono text-xs uppercase tracking-wider">
-                  QR will appear here after batch creation
-                </p>
+              <div className="border border-dashed border-emerald-500/20 rounded-2xl p-10 text-center text-emerald-500/50 sticky top-24">
+                QR will appear here
               </div>
             )}
           </div>
+
         </div>
       </div>
 
       {showScanner && (
         <QRScanner
           onScan={(data) => {
-            // data could be a batch ID string or an object with id
             const id = typeof data === 'object' ? (data.id || data.batchId) : data
             addRawMaterial(id)
             setShowScanner(false)
